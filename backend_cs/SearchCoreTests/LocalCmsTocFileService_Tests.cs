@@ -10,7 +10,7 @@ public class LocalCmsTocFileService_Tests
 {
 	private const string IndexFile = "..\\..\\..\\..\\test_files\\2026-04-28_fidelis_index.json";
 
-	private readonly ICmsTocService _service = new LocalCmsTocFileService();
+	private readonly ICmsTocService _service = new CmsTocFileService(null);
 
 	[TestMethod]
 	public async Task DeserializeIndexFile_CanDeserialize()

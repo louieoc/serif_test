@@ -10,6 +10,21 @@ With more time, my next step would be to convert the backend to Go, with the C# 
 -- Louis O'Callaghan (louieoc@gmail.com)
 
 
+## Getting started
+
+### Start the API
+
+- For the .Net API, open the solution in Visual Studio or VS Code.
+  - If Visual Studio, set SearchApi as the startup project and hit F5 (or right-click the SearchApi project and select Debug --> Start New Instance).
+  - If VS Code, cd into the `./backend_cs/SearchApi` folder and run `dotnet run --launch-profile https`
+- Now you can [test the API with Scalar](https://localhost:7200/scalar/v1).
+- Note that the first time it runs, it should download and cache the index and rate files to `./backend_cs/test_files`
+
+
+### Start the frontend
+
+TODO
+
 ## Assumptions
 
 - definition of done:
@@ -35,12 +50,6 @@ With more time, my next step would be to convert the backend to Go, with the C# 
 ## Project structure
 
 At the high level:
-
-- `backend` folder (not even really started Go version)
-  - `api`
-  - `core`
-    - `models` -- structs to describe the domain
-    - `services` -- structs for doing all the things
 
 - `backend_cs` folder (the .net version)
   - `SearchApi` -- ASP.NET Core Web API wrapping the SearchService logic

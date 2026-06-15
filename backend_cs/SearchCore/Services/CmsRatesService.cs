@@ -1,6 +1,7 @@
 ﻿using SearchCore.Domain;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ public class CmsRatesService(HttpClient? httpClient) : ICmsRatesService
 {
 	private readonly HttpClient? _httpClient = httpClient;
 
-	public async Task<ServiceResult<InNetworkRoot>> DeserializeInNetworkFile(Uri uri)
+	public async Task<ServiceResult<InNetworkRoot>> DeserializeInNetworkFile(Uri uri, string? cacheFolder = null)
 	{
 		var result = new ServiceResult<InNetworkRoot>();
 		if (_httpClient is null)
@@ -32,6 +33,15 @@ public class CmsRatesService(HttpClient? httpClient) : ICmsRatesService
 			using var httpResult = await _httpClient.GetAsync(uri);
 			httpResult.EnsureSuccessStatusCode();
 			using Stream streamToReadFrom = await httpResult.Content.ReadAsStreamAsync();
+
+			if (!string.IsNullOrEmpty(cacheFolder))
+			{
+				var path = Path.Combine(cacheFolder, uri.Segments.Last()); // might be better to input the full path rather than the cache folder alone
+				using var fileStream = File.Create(path);
+				await streamToReadFrom.CopyToAsync(fileStream);
+				streamToReadFrom.Seek(0, SeekOrigin.Begin);
+			}
+
 			InNetworkRoot? root = await JsonSerializer.DeserializeAsync<InNetworkRoot>(streamToReadFrom);
 			result.Data = root;
 		}

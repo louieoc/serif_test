@@ -1,6 +1,8 @@
 using Scalar.AspNetCore;
 using SearchCore.Services;
 
+const string UserAgent = "SearchApi/1.0";
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -17,11 +19,16 @@ builder.Services.AddOpenApi();
 builder.Services.AddHttpClient<ICmsRatesService, CmsRatesService>(client =>
 {
     // Centene's CDN rejects requests without a User-Agent (403).
-    client.DefaultRequestHeaders.UserAgent.ParseAdd("SearchApi/1.0");
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
     client.Timeout = TimeSpan.FromMinutes(5); // CMS files can be very large
 });
 
-builder.Services.AddScoped<ICmsTocService, LocalCmsTocFileService>();
+builder.Services.AddHttpClient<ICmsTocService, CmsTocFileService>(client =>
+{
+	// Centene's CDN rejects requests without a User-Agent (403).
+	client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
+	client.Timeout = TimeSpan.FromMinutes(5); // CMS files can be very large
+});
 
 var app = builder.Build();
 

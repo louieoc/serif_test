@@ -7,13 +7,18 @@ namespace SearchCoreTests;
 public class SearchService_Tests
 {
 	private const string CacheFolder = "..\\..\\..\\..\\test_files";
+	private readonly SearchService _service;
 
-	private readonly SearchService _service = new SearchService(
-		new LocalCmsTocFileService(),
-		new CmsRatesService(new HttpClient()),
-		CacheFolder
-	);
-
+	public SearchService_Tests()
+	{
+		var client = new HttpClient();
+		_service = new SearchService(
+			new CmsTocFileService(client),
+			new CmsRatesService(client),
+			CacheFolder
+		);
+	}
+	
 	[TestMethod]
 	public async Task DeserializeIndexFile_CanDeserialize()
 	{

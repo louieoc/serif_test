@@ -9,7 +9,7 @@ namespace SearchCore.Services;
 
 public class SearchService(ICmsTocService tocService, ICmsRatesService ratesService, string cacheFolder)
 {
-	private const string IndexFile = "2026-04-28_fidelis_index.json";
+	private const string IndexUrl = "https://www.centene.com/content/dam/centene/Centene%20Corporate/json/DOCUMENT/2026-04-28_fidelis_index.json";
 	private readonly string _cacheFolder = cacheFolder;
 
 	// feels weird without the underscore
@@ -18,17 +18,34 @@ public class SearchService(ICmsTocService tocService, ICmsRatesService ratesServ
 
 	public async Task<ServiceResult<List<ProcedureProviderGroupRates>>> ProcedureProviderGroupRates(SearchRequest request)
 	{
-		var result = new ServiceResult<List<ProcedureProviderGroupRates>>();
-		var indexPath = Path.Combine(_cacheFolder, IndexFile);
-		var indexResult = await _tocService.DeserializeIndexFile(indexPath);
+		var output = new ServiceResult<List<ProcedureProviderGroupRates>>();
+
+		var indexResult = new ServiceResult<CmsIndex>();
+		var indexUri = new Uri(IndexUrl);
+		var indexFile = Cached(indexUri.Segments.Last());
+		if (indexFile is null)
+		{
+			indexResult = await _tocService.DeserializeIndexFile(indexUri, _cacheFolder);
+		}
+		else
+		{
+			indexResult = await _tocService.DeserializeIndexFile(indexFile);
+		}
+
 		if (!indexResult.Success)
 		{
-			result.Errors.AddRange(indexResult.Errors);
-			return result;
+			output.Errors.AddRange(indexResult.Errors);
+			return output;
+		}
+
+		if (indexResult.Data is null)
+		{
+			output.Errors.Add("CMS index data was not found. Weird?");
+			return output;
 		}
 
 		var rates = new List<ProcedureProviderGroupRates>();
-		result.Data = rates;
+		output.Data = rates;
 
 		var mapper = new DomainMapper();
 
@@ -49,25 +66,25 @@ public class SearchService(ICmsTocService tocService, ICmsRatesService ratesServ
 				ServiceResult<InNetworkRoot> rateResult;
 
 				var uri = new Uri(file.Location!);
-				var filename = Cached(uri.Segments.Last());
-				if (filename is null)
+				var rateFile = Cached(uri.Segments.Last());
+				if (rateFile is null)
 				{
-					rateResult = await _ratesService.DeserializeInNetworkFile(uri);
+					rateResult = await _ratesService.DeserializeInNetworkFile(uri, _cacheFolder);
 				}
 				else
 				{
-					rateResult = await _ratesService.DeserializeInNetworkFile(filename);
+					rateResult = await _ratesService.DeserializeInNetworkFile(rateFile);
 				}
 
 				if (!rateResult.Success)
 				{
-					result.Errors.AddRange(rateResult.Errors);
+					output.Errors.AddRange(rateResult.Errors);
 					continue;
 				}
 
 				if (rateResult.Data is null)
 				{
-					result.Errors.Add("InNetworkRoot data was not found. Weird?");
+					output.Errors.Add("InNetworkRoot data was not found. Weird?");
 					continue;
 				}
 
@@ -76,7 +93,7 @@ public class SearchService(ICmsTocService tocService, ICmsRatesService ratesServ
 			}
 		}
 
-		return result;
+		return output;
 	}
 
 	private string? Cached(string filename)

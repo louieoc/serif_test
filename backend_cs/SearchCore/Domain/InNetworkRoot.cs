@@ -54,7 +54,7 @@ public class Procedure // in the file, in_network is a list of these
 	public string? BillingCode { get; set; }
 
 	[JsonPropertyName("negotiated_rates")]
-	public List<NegotiatedRate>? NegotiatedRates { get; set; }
+	public List<NegotiatedRate>? NegotiatedRates { get; set; } // this here is why we need separate input and output classes -- we don't want this in the output
 }
 
 public class NegotiatedRate
