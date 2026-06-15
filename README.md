@@ -12,28 +12,83 @@ With more time, my next step would be to convert the backend to Go, with the C# 
 
 ## Getting started
 
+1. Clone this repo.
+1. Install the [.NET SDK 9.0](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+1. Install [Node.js](https://nodejs.org/en)
+
+
 ### Start the API
 
 - For the .Net API, open the solution in Visual Studio or VS Code.
-  - If Visual Studio, set SearchApi as the startup project and hit F5 (or right-click the SearchApi project and select Debug --> Start New Instance).
-  - If VS Code, cd into the `./backend_cs/SearchApi` folder and run `dotnet run --launch-profile https`
-- Now you can [test the API with Scalar](https://localhost:7200/scalar/v1).
-- Note that the first time it runs, it should download and cache the index and rate files to `./backend_cs/test_files`
+    - If Visual Studio, set SearchApi as the startup project and hit F5 (or right-click the SearchApi project and select Debug --> Start New Instance).
+    - If VS Code, cd into the `./backend_cs/SearchApi` folder and run `dotnet run --launch-profile https`
+    - Now you can test the API with Scalar at [https://localhost:5189/scalar/v1](https://localhost:5189/scalar/v1).
+- Note: the first time it's queried, the API should download and cache the index and rate files to `./backend_cs/test_files`
+- Also note: for https you could run `dotnet run --launch-profile https` and the port will be `7200`, but the frontend isn't set up for that
 
 
 ### Start the frontend
 
-TODO
+- open a separate terminal window
+- cd into `./frontend`
+- run `npm run dev`
+- visit [http://localhost:5173/](http://localhost:5173/)
+
+
+## Project structure
+
+At the high level:
+
+- `backend_cs` folder (the .net version)
+    - `SearchApi` -- ASP.NET Core Web API wrapping the SearchService logic
+        - Swagger/Scalar: [https://localhost:7200/scalar/v1](https://localhost:7200/scalar/v1)
+    - `SearchCli` -- a quick cli I used for trying things out, I can toss it now
+    - `SearchCore`
+        - `Domain` -- classes to describe the domain, and mapping logic
+        - `Services` -- classes for downloading and parsing files, and the SearchService that brings it all together
+    - `SearchCoreTests` -- integration tests replacing the cli project. These tests may not pass unless you download index and rate files into the `test_files` folder (TODO fix that)
+    - `test_files` -- index and rate files are stored here. This folder is ignored in source control but the SearchApi will create it and download files into it
+- `frontend` -- the Vue UI
+
+### Data flow
+
+1. The frontend receives search parameters from the user and makes a request of the API
+1. The API downloads and parses CMS rate files
+    1. Parse the ToC/index file
+        - the API has a hard-coded reference to the index file URL
+        - if the index file is not already downloaded, download and cache it
+        - parse the json file contents
+        - get the list of rate files
+    1. Parse the rate files
+        - if the rate file is not already downloaded, download and cache it
+        - parse the json file contents
+        - first loop through the bill code references
+            - capture pricing data as it's related to the bill code/medical procedure and to the list of provider group ids
+            - maintain a dictionary linking the provider group id to a list of objects representing the rates
+            - maintain a separate list of the output shapes which link a bill code/procedure to the list of objects representing the rates
+        - loop through the provider references
+            - retrieve the object lists from the provider group id dictionary
+            - add the provider data to the objects. Since they are linked by reference, the output shape object will also be updated
+    1. Return the output as json
+1. The frontend receives the json and displays the data in table form
+
+
+## What I would do with more time
+
+1. write the backend in Go. It was taking me long enough to understand the data that I couldn't also start thinking in a new language.
+1. create entirely separate output classes from the file ingestion classes
+    - I'm currently returning some of the same models as they appear in the source files
+
 
 ## Assumptions
 
 - definition of done:
-  - input a billing code and display a list of provider groups and rates
-  - allow filtering by provider npi or ein (perhaps on UI side)
+    - input a billing code and display a list of provider groups and rates
+    - allow filtering by provider npi or ein (perhaps on UI side)
 
 - need to create a simplified model linking billing code, provider group, and rate/price
-  - ein, npi, provider group, negotiated rate
-  - plan name, issuer, billing code, facility, location (as per hints)
+    - ein, npi, provider group, negotiated rate
+    - plan name, issuer, billing code, facility, location (as per hints)
 
 - provider group is the unit/atomicity, not provider?
 - we can ignore the "allowed amount" files as the instructions don't mention them and are explicit about "in network"
@@ -44,36 +99,12 @@ TODO
 - assume each provider group has at least one NPI
 - assume TIN is always EIN
 - assume billing code type and version are always the same (would need a compound index kind of thing otherwise, i.e. billing_code + type + version)
-  - might need something like that for additional_information and billing_code_modifier fields? Assume no for now (billing code 300 will return a lot of info)
+    - might need something like that for additional_information and billing_code_modifier fields? Assume no for now (billing code 300 will return a lot of info)
 
+- http is ok vs self-signed https. I understand some things like geolocation would require https, so that's something to be aware of
+    - we get a warning from asp.net when it tries to redirect an http request to https, but I'm assured this is harmless
 
-## Project structure
-
-At the high level:
-
-- `backend_cs` folder (the .net version)
-  - `SearchApi` -- ASP.NET Core Web API wrapping the SearchService logic
-  - `SearchCli` -- a quick cli I used for trying things out, I can toss it now
-  - `SearchCore`
-    - `Domain` -- classes to describe the domain, and mapping logic
-    - `Services` -- classes for downloading and parsing files, and the SearchService that brings it all together
-  - `SearchCoreTests` -- integration tests replacing the cli project. These tests won't pass unless you download index and rate files into the `test_files` folder
-  - `test_files` -- index and rate files are stored here. In theory the SearchService will download rate files if they're not cached already but I haven't tested it
-
-- `frontend` folder
-  - the Vue UI
-
-
-## Api
-
-Swagger: [https://localhost:7200/scalar/v1](https://localhost:7200/scalar/v1)
-
-use billCode 10040 for acne surgery
-
-~25 seconds latency to parse the index and 2 rates files
-
-
-## Observations
+## Observations/notes
 
 sometimes mulitple NPI's per TIN
 
@@ -102,6 +133,8 @@ billing code 300, type rc, version 2022
 lots of negotiated_rates, only one price per rate
 
 code 19083: appears in both rates files, same name with different providers and plans. I wonder if those should be consolidated
+
+use billCode 10040 for acne surgery
 
 ### NPIs
 

@@ -1,4 +1,5 @@
-﻿using SearchCore.Services;
+﻿using SearchCore.Domain;
+using SearchCore.Services;
 
 namespace SearchCoreTests;
 
@@ -20,7 +21,7 @@ public class SearchService_Tests
 	}
 	
 	[TestMethod]
-	public async Task DeserializeIndexFile_CanDeserialize()
+	public async Task ProcedureProviderGroupRates_CanSearchByBillCode()
 	{
 		var request = new SearchRequest
 		{
@@ -32,11 +33,16 @@ public class SearchService_Tests
 		Assert.IsNotNull(result.Data);
 		Assert.IsTrue(result.Data.Count > 0);
 
-		foreach (var item in result.Data)  //var key in codeRatesHash.Keys)
+		WriteToConsole(result.Data);
+	}
+
+	private static void WriteToConsole(List<ProcedureProviderGroupRates> rates)
+	{
+		foreach (var item in rates)
 		{
 			Console.WriteLine("Procedure:");
-			Console.WriteLine($"	Name: {item.Procedure?.Name}");
 			Console.WriteLine($"	Bill code: {item.Procedure?.BillingCode}");
+			Console.WriteLine($"	Name: {item.Procedure?.Name}");
 
 			foreach (var rate in item.GroupRates)
 			{
