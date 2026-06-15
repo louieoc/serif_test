@@ -36,6 +36,11 @@ public class CmsRatesService(HttpClient? httpClient) : ICmsRatesService
 
 			if (!string.IsNullOrEmpty(cacheFolder))
 			{
+				if (!Directory.Exists(cacheFolder))
+				{
+					Directory.CreateDirectory(cacheFolder);
+				}
+
 				var path = Path.Combine(cacheFolder, uri.Segments.Last()); // might be better to input the full path rather than the cache folder alone
 				using var fileStream = File.Create(path);
 				await streamToReadFrom.CopyToAsync(fileStream);

@@ -101,6 +101,7 @@ billing code 300, type rc, version 2022
 
 lots of negotiated_rates, only one price per rate
 
+code 19083: appears in both rates files, same name with different providers and plans. I wonder if those should be consolidated
 
 ### NPIs
 
