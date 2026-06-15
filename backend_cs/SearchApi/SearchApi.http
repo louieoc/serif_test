@@ -1,0 +1,11 @@
+@SearchApi_HostAddress = http://localhost:5189
+
+### Summarize a CMS in-network rates file (typed-client service)
+GET {{SearchApi_HostAddress}}/api/search/in-network?url=https://www.centene.com/content/dam/centene/Centene%20Corporate/json/DOCUMENT/2026-04-28_centene-management-company-llc_fidelis-ex_in-network.json
+Accept: application/json
+
+### Check reachability of a URL (direct IHttpClientFactory usage)
+GET {{SearchApi_HostAddress}}/api/search/head?url=https://www.centene.com/content/dam/centene/Centene%20Corporate/json/DOCUMENT/2026-04-28_centene-management-company-llc_fidelis-ex_in-network.json
+Accept: application/json
+
+###
