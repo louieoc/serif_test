@@ -134,7 +134,7 @@ async function search() {
     <p v-else-if="error" class="status error">{{ error }}</p>
 
     <template v-else-if="results">
-      <p v-if="results.length === 0" class="status">No results for that bill code.</p>
+      <p v-if="results.length === 0" class="status">No results for that search.</p>
 
       <section v-for="(item, i) in results" :key="i" class="procedure">
         <h2>

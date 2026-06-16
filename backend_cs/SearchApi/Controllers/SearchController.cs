@@ -23,7 +23,7 @@ public class SearchController : ControllerBase
     }
 
 	[HttpGet("rates")]
-	public async Task<IActionResult> GetRates([FromQuery] string billCode, CancellationToken cancellationToken)
+	public async Task<IActionResult> GetRates([FromQuery] string billCode, [FromQuery] string? providerNpi, [FromQuery] string? providerEin, CancellationToken cancellationToken)
 	{
 		if (string.IsNullOrEmpty(billCode))
 		{
@@ -33,7 +33,9 @@ public class SearchController : ControllerBase
 		var service = new SearchService(_tocService, _ratesService, CacheFolder);
 		var request = new SearchRequest
 		{
-			BillCode = billCode
+			BillCode = billCode,
+			Ein = providerEin,
+			Npi = providerNpi
 		};
 		var serviceResult = await service.ProcedureProviderGroupRates(request);
 		if (!serviceResult.Success)

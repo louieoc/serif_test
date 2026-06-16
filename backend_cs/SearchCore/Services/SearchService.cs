@@ -88,7 +88,8 @@ public class SearchService(ICmsTocService tocService, ICmsRatesService ratesServ
 					continue;
 				}
 
-				var mapped = mapper.MapInNetworkRoot(rateResult.Data, request.BillCode);
+				long? longNpi = ParseLong(request.Npi);
+				var mapped = mapper.MapInNetworkRoot(rateResult.Data, request.BillCode, request.Ein, longNpi);
 				rates.AddRange(mapped);
 			}
 		}
@@ -100,5 +101,14 @@ public class SearchService(ICmsTocService tocService, ICmsRatesService ratesServ
 	{
 		var path = Path.Combine(_cacheFolder, filename);
 		return File.Exists(path) ? path : null;
+	}
+
+	private static long? ParseLong(string? myLong)
+	{
+		if (long.TryParse(myLong, out long npiLong))
+		{
+			return npiLong;
+		}
+		return null;
 	}
 }

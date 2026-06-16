@@ -5,7 +5,7 @@ namespace SearchCore.Domain;
 
 public class DomainMapper
 {
-	public List<ProcedureProviderGroupRates> MapInNetworkRoot(InNetworkRoot root, string? billCode)
+	public List<ProcedureProviderGroupRates> MapInNetworkRoot(InNetworkRoot root, string? billCode, string? ein, long? npi)
 	{
 		if (root?.ProviderReferences is null)
 		{
@@ -20,6 +20,9 @@ public class DomainMapper
 		// map provider group id to our custom rates object
 		var groupIdRatesHash = new Dictionary<int, List<ProviderGroupRate>>();
 		var output = new List<ProcedureProviderGroupRates>();
+
+		// if npi and ein filters are supplied, create a set of allowed ids
+		var allowedProviderIds = GetProviderIdFilter(root.ProviderReferences, ein, npi);
 
 		// first filter providers by billing code
 		foreach (var inNetwork in root.InNetworks!)
@@ -39,8 +42,8 @@ public class DomainMapper
 			{
 				Procedure = procedure
 			};
-			output.Add(ppgr);
 
+			bool addProcedure = false;
 			foreach (var rate in inNetwork.NegotiatedRates)
 			{
 				if (rate.ProviderReferences is null) continue;
@@ -48,6 +51,10 @@ public class DomainMapper
 
 				foreach (var pr in rate.ProviderReferences)
 				{
+					// apply ein and npi filter
+					if (allowedProviderIds is not null && !allowedProviderIds.Contains(pr)) continue;
+					addProcedure = true;
+
 					if (!groupIdRatesHash.TryGetValue(pr, out List<ProviderGroupRate>? groupRates) || groupRates == null)
 					{
 						groupRates = new List<ProviderGroupRate>();
@@ -63,6 +70,12 @@ public class DomainMapper
 					ppgr.GroupRates.Add(prgr);
 				}
 			}
+
+			// only want to add the procedure if any of the providers match the filters
+			if (addProcedure)
+			{
+				output.Add(ppgr);
+			}
 		}
 
 		// then fill out the provider info
@@ -75,18 +88,58 @@ public class DomainMapper
 
 			foreach (var gr in groupRates)
 			{
-				if (gr.Providers is null)
-				{
-					gr.Providers = new List<Provider>();
-				}
-
 				foreach (var provider in reference.Providers ?? [])
 				{
-					gr.Providers.Add(provider);
+					// need to filter by ein/npi here too
+					if (ProviderIsAllowed(provider, ein, npi))
+					{
+						gr.Providers.Add(provider);
+					}
 				}
 			}
 		}
 
 		return output;
+	}
+
+	private HashSet<int>? GetProviderIdFilter(List<ProviderReference> providerRefs, string? ein, long? npi)
+	{
+		if (string.IsNullOrWhiteSpace(ein) && !npi.HasValue)
+		{
+			return null;
+		}
+
+		var allowed = new HashSet<int>();
+		foreach (var providerGroup in providerRefs)
+		{
+			foreach (var provider in providerGroup.Providers ?? [])
+			{
+				if (ProviderIsAllowed(provider, ein, npi))
+				{
+					allowed.Add(providerGroup.ProviderGroupId);
+				}
+			}
+		}
+		return allowed;
+	}
+
+	public static bool ProviderIsAllowed(Provider provider, string? ein, long? npi)
+	{
+		if (string.IsNullOrEmpty(ein) && !npi.HasValue)
+		{
+			return true;
+		}
+
+		if (!string.IsNullOrWhiteSpace(ein) && provider.Tin is not null && provider.Tin.Value == ein)
+		{
+			return true;
+		}
+
+		if (npi.HasValue && provider.Npi is not null && provider.Npi.Contains(npi.Value))
+		{
+			return true;
+		}
+
+		return false;
 	}
 }

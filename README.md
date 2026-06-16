@@ -76,8 +76,9 @@ At the high level:
 ## What I would do with more time
 
 1. write the backend in Go. It was taking me long enough to understand the data that I couldn't also start thinking in a new language.
+1. more elegant mapping and filtering
 1. create entirely separate output classes from the file ingestion classes
-    - I'm currently returning some of the same models as they appear in the source files
+    - I'm currently returning some of the same models as they appear in the source files, which in at least one instance has more fields than I want
 
 
 ## Assumptions
