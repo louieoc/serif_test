@@ -46,13 +46,16 @@ At the high level:
     - `SearchCore`
         - `Domain` -- classes to describe the domain, and mapping logic
         - `Services` -- classes for downloading and parsing files, and the SearchService that brings it all together
-    - `SearchCoreTests` -- integration tests replacing the cli project. These tests may not pass unless you download index and rate files into the `test_files` folder (TODO fix that)
+    - `SearchCoreTests`
+        - test category "Integration" effectively replace the cli project. These tests may not pass unless you download index and rate files into the `test_files` folder
+        - there are also some unit tests that should pass anytime
     - `test_files` -- index and rate files are stored here. This folder is ignored in source control but the SearchApi will create it and download files into it
 - `frontend` -- the Vue UI
 
 ### Data flow
 
 1. The frontend receives search parameters from the user and makes a request of the API
+    - bill code is required; npi and ein are optional
 1. The API downloads and parses CMS rate files
     1. Parse the ToC/index file
         - the API has a hard-coded reference to the index file URL
@@ -66,9 +69,10 @@ At the high level:
             - capture pricing data as it's related to the bill code/medical procedure and to the list of provider group ids
             - maintain a dictionary linking the provider group id to a list of objects representing the rates
             - maintain a separate list of the output shapes which link a bill code/procedure to the list of objects representing the rates
+            - if ein or npi filtering is present, ensure each group id has at least one provider matching the filters
         - loop through the provider references
             - retrieve the object lists from the provider group id dictionary
-            - add the provider data to the objects. Since they are linked by reference, the output shape object will also be updated
+            - add the provider data to the objects, unless the provider is being filtered out by ein or npi. Since they are linked by reference, the output shape object will also be updated            
     1. Return the output as json
 1. The frontend receives the json and displays the data in table form
 
@@ -76,7 +80,7 @@ At the high level:
 ## What I would do with more time
 
 1. write the backend in Go. It was taking me long enough to understand the data that I couldn't also start thinking in a new language.
-1. more elegant mapping and filtering
+1. make the mapping and filtering more elegant. First, make it work...
 1. create entirely separate output classes from the file ingestion classes
     - I'm currently returning some of the same models as they appear in the source files, which in at least one instance has more fields than I want
 
