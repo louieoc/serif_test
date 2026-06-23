@@ -5,7 +5,7 @@ namespace SearchCore.Domain;
 
 public class DomainMapper
 {
-	public List<ProcedureProviderGroupRates> MapInNetworkRoot(InNetworkRoot root, string? billCode, string? ein, long? npi)
+	public List<ProcedureProviderGroupRates> MapInNetworkRoot(InNetworkRoot root, string? billCode, string? ein, long? npi, string? issuerName, List<ReportingPlan>? plans)
 	{
 		if (root?.ProviderReferences is null)
 		{
@@ -42,6 +42,19 @@ public class DomainMapper
 			{
 				Procedure = procedure
 			};
+
+			if (!string.IsNullOrEmpty(issuerName))
+			{
+				ppgr.Issuer = new Issuer
+				{
+					Name = issuerName
+				};
+			}
+
+			if (plans is not null)
+			{
+				ppgr.Plans = plans;
+			}
 
 			bool addProcedure = false;
 			foreach (var rate in inNetwork.NegotiatedRates)

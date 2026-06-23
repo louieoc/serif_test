@@ -10,6 +10,7 @@ public class CmsRatesService_Tests
 	private const string JsonUrl = "https://www.centene.com/content/dam/centene/Centene%20Corporate/json/DOCUMENT/2026-04-28_centene-management-company-llc_fidelis-ex_in-network.json";
 
 	private ICmsRatesService? _service;
+	private IPlanService _planService;
 
 	[TestMethod]
 	public async Task DeserializeInNetworkFile_GivenUrl_CanDeserialize()

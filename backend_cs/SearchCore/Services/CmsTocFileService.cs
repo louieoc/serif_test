@@ -5,12 +5,13 @@ using System.IO;
 using System;
 using System.Net.Http;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace SearchCore.Services
 {
 	public class CmsTocFileService(HttpClient? httpClient) : ICmsTocService
 	{
-		private HttpClient? _httpClient = httpClient;
+		private readonly HttpClient? _httpClient = httpClient;
 
 		public async Task<ServiceResult<CmsIndex>> DeserializeIndexFile(Uri uri, string? cacheFolder = null)
 		{

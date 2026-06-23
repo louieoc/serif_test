@@ -47,7 +47,7 @@ class Program
 		}
 
 		var mapper = new DomainMapper();
-		var mapped = mapper.MapInNetworkRoot(root, billCode, null, null);
+		var mapped = mapper.MapInNetworkRoot(root, billCode, null, null, null, null);
 
 		// write out results
 
