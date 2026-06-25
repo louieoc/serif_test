@@ -21,8 +21,8 @@ With more time, my next step would be to convert the backend to Go, with the C# 
 
 - For the .Net API, open the solution in Visual Studio or VS Code.
     - If Visual Studio, set SearchApi as the startup project and hit F5 (or right-click the SearchApi project and select Debug --> Start New Instance).
-    - If VS Code, cd into the `./backend_cs/SearchApi` folder and run `dotnet run --launch-profile https`
-    - Now you can test the API with Scalar at [https://localhost:5189/scalar/v1](https://localhost:5189/scalar/v1).
+    - If VS Code, cd into the `./backend_cs/SearchApi` folder and run `dotnet run`
+    - Now you can test the API with Scalar at [http://localhost:5189/scalar/v1](http://localhost:5189/scalar/v1).
 - Note: the first time it's queried, the API should download and cache the index and rate files to `./backend_cs/test_files`
 - Also note: for https you could run `dotnet run --launch-profile https` and the port will be `7200`, but the frontend isn't set up for that
 

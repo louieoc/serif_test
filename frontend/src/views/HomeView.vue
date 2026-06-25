@@ -1,38 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-
-// Response shape of GET /api/Search/rates.
-// Container properties are camelCased by ASP.NET's default serializer, while
-// the source-modeled properties keep their [JsonPropertyName] snake_case names.
-interface Tin {
-  type: string | null
-  value: string | null
-  business_name: string | null
-}
-
-interface Provider {
-  npi: number[] | null
-  tin: Tin | null
-}
-
-interface NegotiatedPrice {
-  negotiated_rate: number | null
-}
-
-interface ProviderGroupRate {
-  providers: Provider[]
-  negotiatedPrices: NegotiatedPrice[]
-}
-
-interface Procedure {
-  name: string | null
-  billing_code: string | null
-}
-
-interface ProcedureProviderGroupRates {
-  procedure: Procedure | null
-  groupRates: ProviderGroupRate[]
-}
+import type { ProcedureProviderGroupRates } from '@/types/rates'
 
 const billCode = ref('')
 const providerNpi = ref('')
@@ -78,9 +46,10 @@ async function search() {
 </script>
 
 <template>
-  <main class="search">
+  <header class="search">
     <h1>Rate Search</h1>
-
+  </header>
+  <main class="search">
     <form class="search-form" @submit.prevent="search">
       <div class="fields">
         <div class="field">
