@@ -51,15 +51,33 @@ public class SearchService(ICmsTocService tocService, ICmsRatesService ratesServ
 
 		foreach (var structure in indexResult?.Data?.ReportingStructure ?? [])
 		{
-			// here's where if we were filtering by issuer or plan we could skip the ones we're not interested in
-			// e.g.:
-			//if (string.IsNullOrEmpty(request.Issuer) || !structure.ReportingPlans.Any(p => p.IssuerName == request.Issuer))
-			//{
-			//	continue;
-			//}
+			// filter by issuer
+			if (!string.IsNullOrEmpty(request.IssuerName) && !structure.ReportingPlans!.Any(p => p.IssuerName == request.IssuerName))
+			{
+				continue;
+			}
 
-			// if we wanted to include issuer, I think I would create a new IssuerProcedureProviderGroupRates class
-			// possibly with a list of Issuers as one property, and a ProcedureProviderGroupRates as another
+			// filter by plan
+			var plans = new List<ReportingPlan>();
+			bool planPresent = string.IsNullOrEmpty(request.Plan) || false;
+			if (!planPresent)
+			{
+				foreach (var plan in structure.ReportingPlans ?? [])
+				{
+					if (plan.PlanName!.Equals(request.Plan, StringComparison.OrdinalIgnoreCase))
+					{
+						planPresent = true;
+					}
+				}
+			}
+			if (!planPresent)
+			{
+				continue;
+			}
+			else
+			{
+				plans.AddRange(structure.ReportingPlans ?? []);
+			}
 
 			foreach (var file in structure.InNetworkFiles ?? [])
 			{
@@ -89,7 +107,7 @@ public class SearchService(ICmsTocService tocService, ICmsRatesService ratesServ
 				}
 
 				long? longNpi = ParseLong(request.Npi);
-				var mapped = mapper.MapInNetworkRoot(rateResult.Data, request.BillCode, request.Ein, longNpi);
+				var mapped = mapper.MapInNetworkRoot(rateResult.Data, request.BillCode, request.Ein, longNpi, request.IssuerName, plans);
 				rates.AddRange(mapped);
 			}
 		}

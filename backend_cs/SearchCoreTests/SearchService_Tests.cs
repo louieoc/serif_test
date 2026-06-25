@@ -36,6 +36,42 @@ public class SearchService_Tests
 		WriteToConsole(result.Data);
 	}
 
+	[TestMethod]
+	public async Task ProcedureProviderGroupRates_GivenIssuerFilter_IncludesIssuer()
+	{
+		var request = new SearchRequest
+		{
+			BillCode = "10040",
+			IssuerName = "Fidelis Care"
+		};
+		var result = await _service.ProcedureProviderGroupRates(request);
+
+		Assert.IsTrue(result.Success);
+		Assert.IsNotNull(result.Data);
+		Assert.IsTrue(result.Data.Count > 0);
+		Assert.AreEqual("Fidelis Care", result.Data[0].Issuer!.Name);
+
+		WriteToConsole(result.Data);
+	}
+
+	[TestMethod]
+	public async Task ProcedureProviderGroupRates_GivenPlanFilter_IncludesPlan()
+	{
+		var request = new SearchRequest
+		{
+			BillCode = "99213",
+			Plan = "Essential Plan 4"
+		};
+		var result = await _service.ProcedureProviderGroupRates(request);
+
+		Assert.IsTrue(result.Success);
+		Assert.IsNotNull(result.Data);
+		Assert.IsTrue(result.Data.Count > 0);
+		Assert.IsTrue(result.Data.All(d => d.Plans!.Any(p => p.PlanName == "Essential Plan 4")));
+
+		WriteToConsole(result.Data);
+	}
+
 	private static void WriteToConsole(List<ProcedureProviderGroupRates> rates)
 	{
 		foreach (var item in rates)
@@ -43,6 +79,13 @@ public class SearchService_Tests
 			Console.WriteLine("Procedure:");
 			Console.WriteLine($"	Bill code: {item.Procedure?.BillingCode}");
 			Console.WriteLine($"	Name: {item.Procedure?.Name}");
+			Console.WriteLine($"	Issuer: {item.Issuer?.Name ?? string.Empty}");
+
+			Console.WriteLine("  Plans:");
+			foreach (var plan in item.Plans ?? [])
+			{
+				Console.WriteLine($"	Name: {plan.PlanName}");
+			}
 
 			foreach (var rate in item.GroupRates)
 			{

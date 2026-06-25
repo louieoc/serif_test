@@ -8,6 +8,8 @@ namespace SearchCore.Domain;
 /// </summary>
 public class ProviderGroupRate
 {
+	// should there be an ID for this? Each InNetwork file has an internal sequence that could map to this object
+	// otherwise I don't see one. In DomainMapper I use a Dictionary<int, ProviderGroupRate> to track this idea
 	public List<Provider> Providers { get; set; } = [];
 	public List<NegotiatedPrice> NegotiatedPrices { get; set; } = [];
 }
@@ -18,6 +20,13 @@ public class ProviderGroupRate
 /// </summary>
 public class ProcedureProviderGroupRates
 {
+	public Issuer? Issuer { get; set; }
+	public List<ReportingPlan> Plans { get; set; } = [];
 	public Procedure? Procedure { get; set; }
 	public List<ProviderGroupRate> GroupRates { get; set; } = [];
+}
+
+public class Issuer
+{
+	public string Name { get; set; } = string.Empty;
 }
